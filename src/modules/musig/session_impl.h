@@ -206,7 +206,9 @@ static void secp256k1_nonce_function_musig(secp256k1_scalar *k, const unsigned c
 
     /* TODO: this doesn't have the same sidechannel resistance as the BIP340
      * nonce function because the seckey feeds directly into SHA. */
-    secp256k1_sha256_initialize_tagged(&sha, (unsigned char*)"MuSig/nonce", sizeof("MuSig/nonce"));
+
+    /* Subtract one from `sizeof` to avoid hashing the implicit null byte */
+    secp256k1_sha256_initialize_tagged(&sha, (unsigned char*)"MuSig/nonce", sizeof("MuSig/nonce") - 1);
     secp256k1_sha256_write(&sha, session_id, 32);
     extra_in[0] = key32;
     extra_in[1] = agg_pk32;

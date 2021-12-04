@@ -1014,6 +1014,54 @@ int musig_test_is_second_pk(const secp256k1_musig_keyagg_cache *keyagg_cache, co
     return secp256k1_fe_equal_var(&cache_i.second_pk_x, &pkp.x);
 }
 
+
+void musig_test_vectors_noncegen(void) {
+    secp256k1_scalar k[2];
+    unsigned char k32[2][32];
+    const unsigned char k32_expected[2][32] = {
+        {
+            0x91, 0x2C, 0x7C, 0xCD, 0x01, 0xDD, 0x80, 0x2F,
+            0x84, 0xAD, 0x61, 0xD8, 0xB9, 0x5F, 0x03, 0xAE,
+            0x33, 0x44, 0xD4, 0x08, 0x3F, 0x2F, 0x41, 0xF4,
+            0x05, 0x27, 0xD0, 0x31, 0x4B, 0x4D, 0x0B, 0x3E,
+        },
+        {
+            0xD7, 0x44, 0x7D, 0xBF, 0x3B, 0x50, 0x4F, 0x96,
+            0xC3, 0x49, 0xA5, 0x22, 0xA3, 0x07, 0x67, 0x28,
+            0x18, 0xC9, 0x2C, 0x87, 0x56, 0xFB, 0x10, 0x98,
+            0x0A, 0x3F, 0x91, 0x8D, 0xF7, 0xA2, 0xDD, 0xAB,
+        },
+    };
+    unsigned char args[5][32];
+    int i;
+
+    for (i = 0; i < 5; i++) {
+        memset(args[i], i, sizeof(args[i]));
+    }
+    secp256k1_nonce_function_musig(k, args[0], args[1], args[2], args[3], args[4]);
+    /* TODO: remove when test vectors are not expected to change anymore */
+    /* int x, y, z; */
+    /* printf("const unsigned char k32_expected[2][32] = {\n"); */
+    /* for (x = 0; x < 2; x++) { */
+    /*     secp256k1_scalar_get_b32(k32[x], &k[x]); */
+    /*     printf("    {\n"); */
+    /*     for (y = 0; y < 4; y++) { */
+    /*         printf("        "); */
+    /*         for (z = 0; z < 8; z++) { */
+    /*             printf("0x%02X, ", k32[x][y*8+z]); */
+    /*         } */
+    /*         printf("\n"); */
+    /*     } */
+    /*     printf("    },\n"); */
+    /* } */
+    /* printf("};\n"); */
+
+    for (i = 0; i < 2; i++) {
+        secp256k1_scalar_get_b32(k32[i], &k[i]);
+        CHECK(memcmp(k32[i], k32_expected[i], 32) == 0);
+    }
+}
+
 /* TODO: Add test vectors for failed signing */
 void musig_test_vectors_sign(void) {
     unsigned char sig[32];
@@ -1126,6 +1174,7 @@ void run_musig_tests(void) {
     }
     sha256_tag_test();
     musig_test_vectors_keyagg();
+    musig_test_vectors_noncegen();
     musig_test_vectors_sign();
 
     secp256k1_scratch_space_destroy(ctx, scratch);
