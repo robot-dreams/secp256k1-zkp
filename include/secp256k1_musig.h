@@ -453,7 +453,7 @@ SECP256K1_API int secp256k1_musig_partial_sig_agg(
 SECP256K1_API int secp256k1_musig_nonce_parity(
     const secp256k1_context* ctx,
     int *nonce_parity,
-    secp256k1_musig_session *session
+    const secp256k1_musig_session *session
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Converts a pre-signature that misses the adaptor into a full signature
