@@ -9,7 +9,7 @@
 
 #include "session.h"
 
-int secp256k1_musig_nonce_parity(const secp256k1_context* ctx, int *nonce_parity, secp256k1_musig_session *session) {
+int secp256k1_musig_nonce_parity(const secp256k1_context* ctx, int *nonce_parity, const secp256k1_musig_session *session) {
     secp256k1_musig_session_internal session_i;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(nonce_parity != NULL);
