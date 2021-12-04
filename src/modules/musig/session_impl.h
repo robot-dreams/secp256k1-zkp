@@ -229,7 +229,7 @@ static void secp256k1_nonce_function_musig(secp256k1_scalar *k, const unsigned c
         unsigned char buf[32];
         secp256k1_sha256_initialize(&sha);
         secp256k1_sha256_write(&sha, seed, 32);
-        secp256k1_sha256_write(&sha, &i, 1);
+        secp256k1_sha256_write(&sha, &i, sizeof(i));
         secp256k1_sha256_finalize(&sha, buf);
         secp256k1_scalar_set_b32(&k[i], buf, NULL);
     }
