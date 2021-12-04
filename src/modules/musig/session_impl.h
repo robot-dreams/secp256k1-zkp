@@ -66,7 +66,7 @@ static void secp256k1_musig_session_save(secp256k1_musig_session *session, const
     ptr += 4;
     *ptr = session_i->fin_nonce_parity;
     ptr += 1;
-    memmove(ptr, session_i->fin_nonce, 32);
+    memcpy(ptr, session_i->fin_nonce, 32);
     ptr += 32;
     secp256k1_scalar_get_b32(ptr, &session_i->noncecoef);
     ptr += 32;
@@ -82,7 +82,7 @@ static int secp256k1_musig_session_load(const secp256k1_context* ctx, secp256k1_
     ptr += 4;
     session_i->fin_nonce_parity = *ptr;
     ptr += 1;
-    session_i->fin_nonce = ptr;
+    memcpy(session_i->fin_nonce, ptr, 32);
     ptr += 32;
     secp256k1_scalar_set_b32(&session_i->noncecoef, ptr, NULL);
     ptr += 32;
@@ -447,7 +447,7 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
         }
         secp256k1_scalar_add(&session_i.s_part, &session_i.s_part, &e_tmp);
     }
-    session_i.fin_nonce = fin_nonce;
+    memcpy(session_i.fin_nonce, fin_nonce, sizeof(session_i.fin_nonce));
     secp256k1_musig_session_save(session, &session_i);
     return 1;
 }

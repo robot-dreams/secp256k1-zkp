@@ -9,7 +9,7 @@
 
 typedef struct {
     int fin_nonce_parity;
-    const unsigned char *fin_nonce;
+    unsigned char fin_nonce[32];
     secp256k1_scalar noncecoef;
     secp256k1_scalar challenge;
     secp256k1_scalar s_part;
