@@ -60,7 +60,7 @@ static int secp256k1_musig_aggnonce_load(const secp256k1_context* ctx, secp256k1
 static const unsigned char secp256k1_musig_session_cache_magic[4] = { 0x9d, 0xed, 0xe9, 0x17 };
 
 /* A session consists of
- * - 4 byte session cache
+ * - 4 byte session cache magic
  * - 1 byte the parity of the aggregate nonce
  * - 32 byte aggregated nonce
  * - 32 byte nonce aggregation coefficient b

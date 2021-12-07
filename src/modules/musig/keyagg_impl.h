@@ -99,7 +99,7 @@ static void secp256k1_musig_keyagglist_sha256(secp256k1_sha256 *sha) {
     sha->bytes = 64;
 }
 
-/* Computes pk_hash = SHA256(pk[0], ..., pk[np-1]) */
+/* Computes pk_hash = tagged_hash(pk[0], ..., pk[np-1]) */
 static int secp256k1_musig_compute_pk_hash(const secp256k1_context *ctx, unsigned char *pk_hash, const secp256k1_xonly_pubkey * const* pk, size_t np) {
     secp256k1_sha256 sha;
     size_t i;
@@ -166,7 +166,7 @@ typedef struct {
     secp256k1_fe second_pk_x;
 } secp256k1_musig_pubkey_agg_ecmult_data;
 
-/* Callback for batch EC multiplication to compute pk_hash_0*P0 + pk_hash_1*P1 + ...  */
+/* Callback for batch EC multiplication to compute keyaggcoef_0*P0 + keyaggcoef_1*P1 + ...  */
 static int secp256k1_musig_pubkey_agg_callback(secp256k1_scalar *sc, secp256k1_ge *pt, size_t idx, void *data) {
     secp256k1_musig_pubkey_agg_ecmult_data *ctx = (secp256k1_musig_pubkey_agg_ecmult_data *) data;
     int ret;
@@ -213,7 +213,9 @@ int secp256k1_musig_pubkey_agg(const secp256k1_context* ctx, secp256k1_scratch_s
     /* TODO: actually use optimized ecmult_multi algorithms by providing a
      * scratch space */
     if (!secp256k1_ecmult_multi_var(&ctx->error_callback, NULL, &pkj, NULL, secp256k1_musig_pubkey_agg_callback, (void *) &ecmult_data, n_pubkeys)) {
-        /* The current implementation of ecmult_multi_var makes this code unreachable with tests. */
+        /* In order to reach this line with the current implementation of
+         * ecmult_multi_var one would need to provide a callback that can
+         * fail. */
         return 0;
     }
     secp256k1_ge_set_gej(&pkp, &pkj);
