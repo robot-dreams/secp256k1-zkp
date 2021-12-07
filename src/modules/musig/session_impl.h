@@ -385,7 +385,7 @@ static int secp256k1_musig_nonce_process_internal(int *fin_nonce_parity, unsigne
     if (!secp256k1_musig_compute_noncehash(noncehash, aggnonce, agg_pk32, msg)) {
         return 0;
     }
-    /* aggnonce = aggnonces[0] + b*aggnonces[1] */
+    /* fin_nonce = aggnonce[0] + b*aggnonce[1] */
     secp256k1_scalar_set_b32(b, noncehash, NULL);
     secp256k1_ecmult(&fin_nonce_ptj, &aggnoncej[1], b, NULL);
     secp256k1_gej_add_ge(&fin_nonce_ptj, &fin_nonce_ptj, &aggnonce[0]);
