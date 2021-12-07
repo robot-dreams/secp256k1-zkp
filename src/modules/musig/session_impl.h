@@ -512,6 +512,7 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
 
     /* Multiply KeyAgg coefficient */
     secp256k1_fe_normalize_var(&pk.x);
+    /* TODO Cache mu */
     secp256k1_musig_keyaggcoef(&mu, &cache_i, &pk.x);
     secp256k1_scalar_mul(&sk, &sk, &mu);
 
