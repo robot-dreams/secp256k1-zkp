@@ -149,8 +149,6 @@ int secp256k1_musig_pubnonce_parse(const secp256k1_context* ctx, secp256k1_musig
     }
     /* The group elements can not be infinity because they were just parsed */
     secp256k1_musig_pubnonce_save(nonce, ge);
-    secp256k1_ge_clear(&ge[0]);
-    secp256k1_ge_clear(&ge[1]);
     return 1;
 }
 
