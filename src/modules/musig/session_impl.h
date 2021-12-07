@@ -575,7 +575,7 @@ int secp256k1_musig_partial_sig_verify(const secp256k1_context* ctx, const secp2
     if (!secp256k1_keyagg_cache_load(ctx, &cache_i, keyagg_cache)) {
         return 0;
     }
-    /* Multiplying the messagehash by the KeyAgg coefficient is equivalent
+    /* Multiplying the challenge by the KeyAgg coefficient is equivalent
      * to multiplying the signer's public key by the coefficient, except
      * much easier to do. */
     secp256k1_musig_keyaggcoef(&mu, &cache_i, &pkp.x);
