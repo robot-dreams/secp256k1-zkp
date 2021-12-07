@@ -49,6 +49,14 @@ static int secp256k1_musig_pubnonce_load(const secp256k1_context* ctx, secp256k1
     return 1;
 }
 
+static void secp256k1_musig_aggnonce_save(secp256k1_musig_aggnonce* nonce, secp256k1_ge* ge) {
+    secp256k1_musig_pubnonce_save((secp256k1_musig_pubnonce *) nonce, ge);
+}
+
+static int secp256k1_musig_aggnonce_load(const secp256k1_context* ctx, secp256k1_ge* ge, const secp256k1_musig_aggnonce* nonce) {
+    return secp256k1_musig_pubnonce_load(ctx, ge, (secp256k1_musig_pubnonce *) nonce);
+}
+
 static const unsigned char secp256k1_musig_session_cache_magic[4] = { 0x9d, 0xed, 0xe9, 0x17 };
 
 /* A session consists of
@@ -342,7 +350,7 @@ int secp256k1_musig_nonce_agg(const secp256k1_context* ctx, secp256k1_musig_aggn
             secp256k1_ge_set_gej(&aggnonce_pt[i], &aggnonce_ptj[i]);
         }
     }
-    secp256k1_musig_pubnonce_save((secp256k1_musig_pubnonce*)aggnonce, aggnonce_pt);
+    secp256k1_musig_aggnonce_save(aggnonce, aggnonce_pt);
     return 1;
 }
 
@@ -410,7 +418,7 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
     }
     secp256k1_fe_get_b32(agg_pk32, &cache_i.pk.x);
 
-    if (!secp256k1_musig_pubnonce_load(ctx, aggnonce_pt, (secp256k1_musig_pubnonce*)aggnonce)) {
+    if (!secp256k1_musig_aggnonce_load(ctx, aggnonce_pt, (secp256k1_musig_aggnonce*)aggnonce)) {
         return 0;
     }
     secp256k1_gej_set_ge(&aggnonce_ptj[0], &aggnonce_pt[0]);
