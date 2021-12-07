@@ -441,12 +441,8 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
     /* If there is a tweak then set `msghash` times `tweak` to the `s`-part.*/
     secp256k1_scalar_set_int(&session_i.s_part, 0);
     if (!secp256k1_scalar_is_zero(&cache_i.tweak)) {
-        secp256k1_scalar e_tmp = session_i.challenge;
-        if (!secp256k1_eckey_privkey_tweak_mul(&e_tmp, &cache_i.tweak)) {
-            /* This mimics the behavior of secp256k1_ec_seckey_tweak_mul regarding
-             * tweak being 0. */
-            return 0;
-        }
+        secp256k1_scalar e_tmp;
+        secp256k1_scalar_mul(&e_tmp, &session_i.challenge, &cache_i.tweak);
         if (secp256k1_fe_is_odd(&cache_i.pk.y)) {
             secp256k1_scalar_negate(&e_tmp, &e_tmp);
         }
