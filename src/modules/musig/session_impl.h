@@ -438,7 +438,7 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
     /* Compute messagehash and store in session cache */
     secp256k1_schnorrsig_challenge(&session_i.challenge, fin_nonce, msg32, 32, agg_pk32);
 
-    /* If there is a tweak then set `msghash` times `tweak` to the `s`-part.*/
+    /* If there is a tweak then set `challenge` times `tweak` to the `s`-part.*/
     secp256k1_scalar_set_int(&session_i.s_part, 0);
     if (!secp256k1_scalar_is_zero(&cache_i.tweak)) {
         secp256k1_scalar e_tmp;
