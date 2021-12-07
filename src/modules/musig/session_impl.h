@@ -257,10 +257,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
         int ret;
         ret = secp256k1_scalar_set_b32_seckey(&sk, seckey);
         /* The declassified return value indicates the validity of the seckey.
-         * If this function is called correctly it is always 1. (Note:
-         * declassify was only required for valgrind_ctime_test build with
-         * USE_ASM_X86_64=no. */
-        secp256k1_declassify(ctx, &ret, sizeof(ret));
+         * If this function is called correctly it is always 1. */
         ARG_CHECK(ret);
         secp256k1_scalar_clear(&sk);
     }
@@ -439,7 +436,7 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
         secp256k1_scalar e_tmp = session_i.challenge;
         if (!secp256k1_eckey_privkey_tweak_mul(&e_tmp, &cache_i.tweak)) {
             /* This mimics the behavior of secp256k1_ec_seckey_tweak_mul regarding
-                * tweak being 0. */
+             * tweak being 0. */
             return 0;
         }
         if (secp256k1_fe_is_odd(&cache_i.pk.y)) {

@@ -268,10 +268,10 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_musig_pubkey_tweak_add(
  *  special care to not reuse a nonce. This can be ensured by following these rules:
  *
  *  1. Each call to this function must have a unique session_id32.
- *     If you do not provide a seckey, session_id32 _must_ be UNIFORMLY RANDOM.
- *     If you do provide a seckey, session_id32 can instead be a counter (that
- *     must never repeat!). However, it is recommended to always choose
- *     session_id32 uniformly at random.
+ *     If you do not provide a seckey, session_id32 _must_ be UNIFORMLY RANDOM
+ *     AND KEPT SECRET (even from other signers). If you do provide a seckey,
+ *     session_id32 can instead be a counter (that must never repeat!). However,
+ *     it is recommended to always choose session_id32 uniformly at random.
  *  2. If you already know the seckey, message or aggregate public key
  *     cache, they can be optionally provided to derive the nonce and increase
  *     misuse-resistance. The extra_input32 argument can be used to provide
