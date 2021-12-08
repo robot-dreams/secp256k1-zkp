@@ -509,10 +509,9 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
         return 0;
     }
     secp256k1_fe_normalize_var(&pk.y);
-    if((secp256k1_fe_is_odd(&pk.y)
-            + secp256k1_fe_is_odd(&cache_i.pk.y)
-            + cache_i.internal_key_parity)
-            % 2 == 1) {
+    if ((secp256k1_fe_is_odd(&pk.y)
+         != secp256k1_fe_is_odd(&cache_i.pk.y))
+         != cache_i.internal_key_parity) {
         secp256k1_scalar_negate(&sk, &sk);
     }
 
