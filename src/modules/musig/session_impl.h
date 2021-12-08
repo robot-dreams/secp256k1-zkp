@@ -279,6 +279,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     secp256k1_nonce_function_musig(k, session_id32, seckey, msg32, pk_ser_ptr, extra_input32);
     VERIFY_CHECK(!secp256k1_scalar_is_zero(&k[0]));
     VERIFY_CHECK(!secp256k1_scalar_is_zero(&k[1]));
+    VERIFY_CHECK(!secp256k1_scalar_eq(&k[0], &k[1]));
     secp256k1_musig_secnonce_save(secnonce, k);
 
     for (i = 0; i < 2; i++) {
