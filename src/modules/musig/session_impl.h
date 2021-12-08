@@ -359,10 +359,11 @@ static int secp256k1_musig_compute_noncehash(unsigned char *noncehash, secp256k1
 
     secp256k1_sha256_initialize(&sha);
     for (i = 0; i < 2; i++) {
-        size_t size = sizeof(buf);
+        size_t size;
         if (!secp256k1_eckey_pubkey_serialize(&aggnonce[i], buf, &size, 1)) {
             return 0;
         }
+        VERIFY_CHECK(size == sizeof(buf));
         secp256k1_sha256_write(&sha, buf, sizeof(buf));
     }
     secp256k1_sha256_write(&sha, agg_pk32, 32);
