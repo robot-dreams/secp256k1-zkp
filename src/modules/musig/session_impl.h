@@ -475,12 +475,8 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
     int ret;
 
     VERIFY_CHECK(ctx != NULL);
-    ARG_CHECK(partial_sig != NULL);
-    ARG_CHECK(secnonce != NULL);
-    ARG_CHECK(keypair != NULL);
-    ARG_CHECK(keyagg_cache != NULL);
-    ARG_CHECK(session != NULL);
 
+    ARG_CHECK(secnonce != NULL);
     /* Fails if the magic doesn't match */
     ret = secp256k1_musig_secnonce_load(ctx, k, secnonce);
     /* Set nonce to zero to avoid nonce reuse. This will cause subsequent calls
@@ -490,6 +486,12 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
         secp256k1_musig_partial_sign_clear(&sk, k);
         return 0;
     }
+
+    ARG_CHECK(partial_sig != NULL);
+    ARG_CHECK(keypair != NULL);
+    ARG_CHECK(keyagg_cache != NULL);
+    ARG_CHECK(session != NULL);
+
 
     /* Obtain the signer's public key point and determine if the sk is
      * negated before signing. That happens if the signer's pubkey has an odd
