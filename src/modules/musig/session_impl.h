@@ -289,7 +289,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
         secp256k1_declassify(ctx, &nonce_pt[i], sizeof(nonce_pt));
         secp256k1_scalar_clear(&k[i]);
     }
-    /* nonce_pt can't be infinity because k != 0 */
+    /* nonce_pt won't be infinity because k != 0 with overwhelming probability */
     secp256k1_musig_pubnonce_save(pubnonce, nonce_pt);
     return ret;
 }
