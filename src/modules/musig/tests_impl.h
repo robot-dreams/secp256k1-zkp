@@ -270,6 +270,8 @@ void musig_api_tests(secp256k1_scratch_space *scratch) {
     CHECK(memcmp(&secnonce[0], zeros68, sizeof(secnonce[0])) == 0);
     CHECK(secp256k1_musig_nonce_gen(sign, &secnonce[0], &pubnonce[0], session_id[0], NULL, msg, &keyagg_cache, max64) == 1);
     CHECK(ecount == 5);
+    CHECK(secp256k1_musig_nonce_gen(sign, &secnonce[0], &pubnonce[0], session_id[0], max64, msg, &keyagg_cache, max64) == 0);
+    CHECK(ecount == 5);
     CHECK(secp256k1_musig_nonce_gen(sign, &secnonce[0], &pubnonce[0], session_id[0], sk[0], NULL, &keyagg_cache, max64) == 1);
     CHECK(ecount == 5);
     CHECK(secp256k1_musig_nonce_gen(sign, &secnonce[0], &pubnonce[0], session_id[0], sk[0], msg, NULL, max64) == 1);

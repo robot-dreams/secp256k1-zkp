@@ -250,6 +250,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     int i;
     unsigned char pk_ser[32];
     unsigned char *pk_ser_ptr = NULL;
+    int ret = 1;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(secnonce != NULL);
@@ -262,22 +263,18 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     /* Check that the seckey is valid to be able to sign for it later. */
     if (seckey != NULL) {
         secp256k1_scalar sk;
-        int ret;
-        ret = secp256k1_scalar_set_b32_seckey(&sk, seckey);
-        /* The declassified return value indicates the validity of the seckey.
-         * If this function is called correctly it is always 1. */
-        ARG_CHECK(ret);
+        ret &= secp256k1_scalar_set_b32_seckey(&sk, seckey);
         secp256k1_scalar_clear(&sk);
     }
 
     if (keyagg_cache != NULL) {
-        int ret;
+        int ret_tmp;
         if (!secp256k1_keyagg_cache_load(ctx, &cache_i, keyagg_cache)) {
             return 0;
         }
-        ret = secp256k1_xonly_ge_serialize(pk_ser, &cache_i.pk);
+        ret_tmp = secp256k1_xonly_ge_serialize(pk_ser, &cache_i.pk);
         /* Serialization can not fail because the loaded point can not be infinity. */
-        VERIFY_CHECK(ret);
+        VERIFY_CHECK(ret_tmp);
         pk_ser_ptr = pk_ser;
     }
     secp256k1_nonce_function_musig(k, session_id32, seckey, msg32, pk_ser_ptr, extra_input32);
@@ -294,7 +291,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     }
     /* nonce_pt can't be infinity because k != 0 */
     secp256k1_musig_pubnonce_save(pubnonce, nonce_pt);
-    return 1;
+    return ret;
 }
 
 static int secp256k1_musig_sum_nonces(const secp256k1_context* ctx, secp256k1_gej *summed_nonces, const secp256k1_musig_pubnonce * const* pubnonces, size_t n_pubnonces) {
