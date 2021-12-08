@@ -186,7 +186,6 @@ int secp256k1_musig_partial_sig_parse(const secp256k1_context* ctx, secp256k1_mu
 
     secp256k1_scalar_set_b32(&tmp, in32, &overflow);
     if (overflow) {
-        secp256k1_scalar_clear(&tmp);
         return 0;
     }
     secp256k1_musig_partial_sig_save(sig, &tmp);
