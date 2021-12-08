@@ -1,13 +1,17 @@
-/**********************************************************************
- * Copyright (c) 2021 Jonas Nick                                      *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2021 Jonas Nick                                       *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
-#ifndef SECP256K1_MODULE_MUSIG_ADAPTOR_IMPL
-#define SECP256K1_MODULE_MUSIG_ADAPTOR_IMPL
+#ifndef SECP256K1_MODULE_MUSIG_ADAPTOR_IMPL_H
+#define SECP256K1_MODULE_MUSIG_ADAPTOR_IMPL_H
+
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_musig.h"
 
 #include "session.h"
+#include "../../scalar.h"
 
 int secp256k1_musig_nonce_parity(const secp256k1_context* ctx, int *nonce_parity, const secp256k1_musig_session *session) {
     secp256k1_musig_session_internal session_i;

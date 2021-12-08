@@ -1,13 +1,27 @@
-/**********************************************************************
- * Copyright (c) 2018 Andrew Poelstra                                 *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2018 Andrew Poelstra                                  *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
-#ifndef _SECP256K1_MODULE_MUSIG_TESTS_
-#define _SECP256K1_MODULE_MUSIG_TESTS_
+#ifndef SECP256K1_MODULE_MUSIG_TESTS_IMPL_H
+#define SECP256K1_MODULE_MUSIG_TESTS_IMPL_H
 
-#include "secp256k1_musig.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_extrakeys.h"
+#include "../../../include/secp256k1_musig.h"
+
+#include "session.h"
+#include "keyagg.h"
+#include "../../scalar.h"
+#include "../../scratch.h"
+#include "../../field.h"
+#include "../../group.h"
+#include "../../hash.h"
+#include "../../util.h"
 
 static int create_keypair_and_pk(secp256k1_keypair *keypair, secp256k1_xonly_pubkey *pk, const unsigned char *sk) {
     int ret;

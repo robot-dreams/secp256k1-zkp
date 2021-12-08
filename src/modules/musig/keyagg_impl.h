@@ -4,11 +4,18 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#ifndef SECP256K1_MODULE_MUSIG_KEYAGG_IMPL
-#define SECP256K1_MODULE_MUSIG_KEYAGG_IMPL
+#ifndef SECP256K1_MODULE_MUSIG_KEYAGG_IMPL_H
+#define SECP256K1_MODULE_MUSIG_KEYAGG_IMPL_H
+
+#include <string.h>
 
 #include "keyagg.h"
-
+#include "../../eckey.h"
+#include "../../ecmult.h"
+#include "../../field.h"
+#include "../../group.h"
+#include "../../hash.h"
+#include "../../util.h"
 
 static void secp256k1_point_save(unsigned char *data, secp256k1_ge *ge) {
     if (sizeof(secp256k1_ge_storage) == 64) {

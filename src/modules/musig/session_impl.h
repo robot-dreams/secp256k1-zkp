@@ -1,14 +1,24 @@
-/**********************************************************************
- * Copyright (c) 2021 Jonas Nick                                      *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2021 Jonas Nick                                       *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
-#ifndef SECP256K1_MODULE_MUSIG_SESSION_IMPL
-#define SECP256K1_MODULE_MUSIG_SESSION_IMPL
+#ifndef SECP256K1_MODULE_MUSIG_SESSION_IMPL_H
+#define SECP256K1_MODULE_MUSIG_SESSION_IMPL_H
+
+#include <string.h>
+
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_extrakeys.h"
+#include "../../../include/secp256k1_musig.h"
 
 #include "keyagg.h"
 #include "session.h"
+#include "../../eckey.h"
+#include "../../hash.h"
+#include "../../scalar.h"
+#include "../../util.h"
 
 static const unsigned char secp256k1_musig_secnonce_magic[4] = { 0x22, 0x0e, 0xdc, 0xf1 };
 
