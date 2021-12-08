@@ -425,7 +425,7 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
     }
     secp256k1_fe_get_b32(agg_pk32, &cache_i.pk.x);
 
-    if (!secp256k1_musig_aggnonce_load(ctx, aggnonce_pt, (secp256k1_musig_aggnonce*)aggnonce)) {
+    if (!secp256k1_musig_aggnonce_load(ctx, aggnonce_pt, aggnonce)) {
         return 0;
     }
     secp256k1_gej_set_ge(&aggnonce_ptj[0], &aggnonce_pt[0]);
@@ -561,7 +561,6 @@ int secp256k1_musig_partial_sig_verify(const secp256k1_context* ctx, const secp2
     secp256k1_gej rj;
     secp256k1_gej tmp;
     secp256k1_ge pkp;
-    int i;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(partial_sig != NULL);
@@ -576,10 +575,8 @@ int secp256k1_musig_partial_sig_verify(const secp256k1_context* ctx, const secp2
 
     /* Compute "effective" nonce rj = aggnonce[0] + b*aggnonce[1] */
     /* TODO: use multiexp to compute -s*G + e*pubkey + aggnonce[0] + b*aggnonce[1] */
-    for (i = 0; i < 2; i++) {
-        if (!secp256k1_musig_pubnonce_load(ctx, nonce_pt, pubnonce)) {
-            return 0;
-        }
+    if (!secp256k1_musig_pubnonce_load(ctx, nonce_pt, pubnonce)) {
+        return 0;
     }
     secp256k1_gej_set_ge(&rj, &nonce_pt[1]);
     secp256k1_ecmult(&rj, &rj, &session_i.noncecoef, NULL);
