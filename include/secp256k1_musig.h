@@ -269,7 +269,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_musig_pubkey_tweak_add(
  *  MuSig differs from regular Schnorr signing in that implementers _must_ take
  *  special care to not reuse a nonce. This can be ensured by following these rules:
  *
- *  1. Each call to this function must have a unique session_id32.
+ *  1. Each call to this function must have a UNIQUE session_id32 that must NOT BE
+ *     REUSED in subsequent calls to this function.
  *     If you do not provide a seckey, session_id32 _must_ be UNIFORMLY RANDOM
  *     AND KEPT SECRET (even from other signers). If you do provide a seckey,
  *     session_id32 can instead be a counter (that must never repeat!). However,
@@ -289,9 +290,9 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_musig_pubkey_tweak_add(
  *  Args:         ctx: pointer to a context object, initialized for signing
  *  Out:     secnonce: pointer to a structure to store the secret nonce
  *           pubnonce: pointer to a structure to store the public nonce
- *  In:  session_id32: a 32-byte session_id32 as explained above. Must be
- *                     uniformly random unless you really know what you are
- *                     doing.
+ *  In:  session_id32: a 32-byte session_id32 as explained above. Must be unique to this
+ *                     call to secp256k1_musig_nonce_gen and must be uniformly random
+ *                     unless you really know what you are doing.
  *             seckey: the 32-byte secret key that will later be used for signing, if
  *                     already known (can be NULL)
  *              msg32: the 32-byte message that will later be signed, if already known
@@ -382,7 +383,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_musig_nonce_process(
  *  In:       keypair: pointer to keypair to sign the message with
  *       keyagg_cache: pointer to the keyagg_cache that was output when the
  *                     aggregate public key for this session
- *      session: pointer to the session that was created with
+ *            session: pointer to the session that was created with
  *                     musig_nonce_process
  */
 SECP256K1_API int secp256k1_musig_partial_sign(
