@@ -564,7 +564,7 @@ int secp256k1_musig_partial_sig_verify(const secp256k1_context* ctx, const secp2
     }
 
     /* Compute "effective" nonce rj = aggnonce[0] + b*aggnonce[1] */
-    /* TODO: use multiexp */
+    /* TODO: use multiexp to compute -s*G + e*pubkey + aggnonce[0] + b*aggnonce[1] */
     for (i = 0; i < 2; i++) {
         if (!secp256k1_musig_pubnonce_load(ctx, nonce_pt, pubnonce)) {
             return 0;
