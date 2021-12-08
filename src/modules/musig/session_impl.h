@@ -131,11 +131,10 @@ int secp256k1_musig_pubnonce_serialize(const secp256k1_context* ctx, unsigned ch
     }
     for (i = 0; i < 2; i++) {
         int ret;
-        size_t size;
+        size_t size = 33;
         ret = secp256k1_eckey_pubkey_serialize(&ge[i], &out66[33*i], &size, 1);
-        VERIFY_CHECK(size == 33);
         /* serialize must succeed because the point was just loaded */
-        VERIFY_CHECK(ret);
+        VERIFY_CHECK(ret && size == 33);
     }
     return 1;
 }
