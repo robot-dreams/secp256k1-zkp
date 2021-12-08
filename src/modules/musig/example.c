@@ -10,10 +10,14 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <secp256k1.h>
 #include <secp256k1_schnorrsig.h>
 #include <secp256k1_musig.h>
+
+/* Set this to 1 to also use an adaptor when signing / verifying. */
+#define USE_ADAPTOR 0
 
 struct signer_secrets {
     secp256k1_keypair keypair;
@@ -52,8 +56,29 @@ int create_keypair(const secp256k1_context* ctx, struct signer_secrets *signer_s
     return 1;
 }
 
+#if USE_ADAPTOR
+int create_adaptor(const secp256k1_context *ctx, unsigned char *sec_adaptor, secp256k1_pubkey *adaptor) {
+    FILE *frand = fopen("/dev/urandom", "r");
+    if (frand == NULL) {
+        return 0;
+    }
+    do {
+        if(!fread(sec_adaptor, 32, 1, frand)) {
+             fclose(frand);
+             return 0;
+         }
+    /* The probability that this not a valid secret key is approximately 2^-128 */
+    } while (!secp256k1_ec_seckey_verify(ctx, sec_adaptor));
+    fclose(frand);
+    if (!secp256k1_ec_pubkey_create(ctx, adaptor, sec_adaptor)) {
+        return 0;
+    }
+    return 1;
+}
+#endif
+
 /* Sign a message hash with the given key pairs and store the result in sig */
-int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, struct signer *signer, const unsigned char* msg32, unsigned char *sig64) {
+int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, struct signer *signer, const unsigned char* msg32, unsigned char *sig64, int *nonce_parity, secp256k1_pubkey *adaptor) {
     int i;
     const secp256k1_xonly_pubkey *pubkeys[N_SIGNERS];
     const secp256k1_musig_pubnonce *pubnonces[N_SIGNERS];
@@ -100,7 +125,7 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
         if (!secp256k1_musig_nonce_agg(ctx, &agg_pubnonce, pubnonces, N_SIGNERS)) {
             return 0;
         }
-        if (!secp256k1_musig_nonce_process(ctx, &session, &agg_pubnonce, msg32, &cache, NULL)) {
+        if (!secp256k1_musig_nonce_process(ctx, &session, &agg_pubnonce, msg32, &cache, adaptor)) {
             return 0;
         }
         /* partial_sign will clear the secnonce by setting it to 0. That's because
@@ -111,6 +136,9 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
             return 0;
         }
         partial_sigs[i] = &signer[i].partial_sig;
+    }
+    if (nonce_parity != NULL && !secp256k1_musig_nonce_parity(ctx, nonce_parity, &session)) {
+        return 0;
     }
     /* Communication round 2: Exchange partial signatures */
     for (i = 0; i < N_SIGNERS; i++) {
@@ -142,6 +170,14 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
     unsigned char msg[32] = "this_could_be_the_hash_of_a_msg!";
     unsigned char sig[64];
 
+#if USE_ADAPTOR
+    unsigned char pre_sig[64];
+    int nonce_parity;
+    unsigned char sec_adaptor[32];
+    unsigned char sec_adaptor_extracted[32];
+    secp256k1_pubkey adaptor;
+#endif
+
     /* Create a context for signing and verification */
     ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
     printf("Creating key pairs......");
@@ -153,6 +189,16 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
         pubkeys_ptr[i] = &signers[i].pubkey;
     }
     printf("ok\n");
+
+#if USE_ADAPTOR
+    printf("Creating adaptor........");
+    if (!create_adaptor(ctx, &sec_adaptor[0], &adaptor)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+#endif
+
     printf("Combining public keys...");
     if (!secp256k1_musig_pubkey_agg(ctx, NULL, &agg_pk, NULL, pubkeys_ptr, N_SIGNERS)) {
         printf("FAILED\n");
@@ -160,17 +206,46 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
     }
     printf("ok\n");
     printf("Signing message.........");
-    if (!sign(ctx, signer_secrets, signers, msg, sig)) {
+#if USE_ADAPTOR
+    if (!sign(ctx, signer_secrets, signers, msg, pre_sig, &nonce_parity, &adaptor)) {
+#else
+    if (!sign(ctx, signer_secrets, signers, msg, sig, NULL, NULL)) {
+#endif
         printf("FAILED\n");
         return 1;
     }
     printf("ok\n");
+
+#if USE_ADAPTOR
+    printf("Applying adaptor........");
+    memcpy(sig, pre_sig, 64);
+    if (!secp256k1_musig_adapt(ctx, sig, sec_adaptor, nonce_parity)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+#endif
+
     printf("Verifying signature.....");
     if (!secp256k1_schnorrsig_verify(ctx, sig, msg, 32, &agg_pk)) {
         printf("FAILED\n");
         return 1;
     }
     printf("ok\n");
+
+#if USE_ADAPTOR
+    printf("Extracting adaptor......");
+    if (!secp256k1_musig_extract_adaptor(ctx, sec_adaptor_extracted, sig, pre_sig, nonce_parity)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    if (memcmp(sec_adaptor, sec_adaptor_extracted, 32) != 0) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+#endif
+
     secp256k1_context_destroy(ctx);
     return 0;
 }
