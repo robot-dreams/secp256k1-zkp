@@ -86,8 +86,8 @@ void pubnonce_summing_to_inf(secp256k1_musig_pubnonce *pubnonce) {
     }
 
     secp256k1_musig_sum_nonces(ctx, summed_nonces, pubnonce_ptr, 2);
-    secp256k1_gej_is_infinity(&summed_nonces[0]);
-    secp256k1_gej_is_infinity(&summed_nonces[1]);
+    CHECK(secp256k1_gej_is_infinity(&summed_nonces[0]));
+    CHECK(secp256k1_gej_is_infinity(&summed_nonces[1]));
 }
 
 void musig_api_tests(secp256k1_scratch_space *scratch) {
