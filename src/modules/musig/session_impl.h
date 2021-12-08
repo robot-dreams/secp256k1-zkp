@@ -317,7 +317,7 @@ int secp256k1_musig_nonce_agg(const secp256k1_context* ctx, secp256k1_musig_aggn
     secp256k1_gej aggnonce_ptj[2];
     secp256k1_ge aggnonce_pt[2];
     int i;
-
+    VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(aggnonce != NULL);
     ARG_CHECK(pubnonces != NULL);
     ARG_CHECK(n_pubnonces > 0);
