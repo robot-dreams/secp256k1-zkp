@@ -61,9 +61,9 @@ static const unsigned char secp256k1_musig_session_cache_magic[4] = { 0x9d, 0xed
 
 /* A session consists of
  * - 4 byte session cache magic
- * - 1 byte the parity of the aggregate nonce
- * - 32 byte aggregated nonce
- * - 32 byte nonce aggregation coefficient b
+ * - 1 byte the parity of the final nonce
+ * - 32 byte final nonce
+ * - 32 byte nonce coefficient b
  * - 32 byte signature challenge hash e
  * - 32 byte scalar s that is added to the partial signatures of the signers
  */
