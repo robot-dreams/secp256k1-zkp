@@ -449,6 +449,12 @@ int secp256k1_musig_nonce_process(const secp256k1_context* ctx, secp256k1_musig_
     return 1;
 }
 
+void secp256k1_musig_partial_sign_clear(secp256k1_scalar *sk, secp256k1_scalar *k) {
+    secp256k1_scalar_clear(sk);
+    secp256k1_scalar_clear(&k[0]);
+    secp256k1_scalar_clear(&k[1]);
+}
+
 int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_partial_sig *partial_sig, secp256k1_musig_secnonce *secnonce, const secp256k1_keypair *keypair, const secp256k1_musig_keyagg_cache *keyagg_cache, const secp256k1_musig_session *session) {
     secp256k1_scalar sk;
     secp256k1_ge pk;
@@ -471,6 +477,7 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
      * of this function to fail */
     memset(secnonce, 0, sizeof(*secnonce));
     if (!ret) {
+        secp256k1_musig_partial_sign_clear(&sk, k);
         return 0;
     }
 
@@ -494,9 +501,11 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
      *                otherwise.
      */
     if (!secp256k1_keypair_load(ctx, &sk, &pk, keypair)) {
+        secp256k1_musig_partial_sign_clear(&sk, k);
         return 0;
     }
     if (!secp256k1_keyagg_cache_load(ctx, &cache_i, keyagg_cache)) {
+        secp256k1_musig_partial_sign_clear(&sk, k);
         return 0;
     }
     secp256k1_fe_normalize_var(&pk.y);
@@ -514,6 +523,7 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
     secp256k1_scalar_mul(&sk, &sk, &mu);
 
     if (!secp256k1_musig_session_load(ctx, &session_i, session)) {
+        secp256k1_musig_partial_sign_clear(&sk, k);
         return 0;
     }
     if (session_i.fin_nonce_parity) {
@@ -527,9 +537,7 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
     secp256k1_scalar_add(&k[0], &k[0], &k[1]);
     secp256k1_scalar_add(&s, &s, &k[0]);
     secp256k1_musig_partial_sig_save(partial_sig, &s);
-    secp256k1_scalar_clear(&sk);
-    secp256k1_scalar_clear(&k[0]);
-    secp256k1_scalar_clear(&k[1]);
+    secp256k1_musig_partial_sign_clear(&sk, k);
     return 1;
 }
 
