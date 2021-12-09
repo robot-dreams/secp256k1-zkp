@@ -492,25 +492,46 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
     ARG_CHECK(keyagg_cache != NULL);
     ARG_CHECK(session != NULL);
 
-
-    /* Obtain the signer's public key point and determine if the sk is
-     * negated before signing. That happens if the signer's pubkey has an odd
-     * Y coordinate XOR the MuSig-aggregate pubkey has an odd Y coordinate XOR
-     * (if tweaked) the internal key has an odd Y coordinate.
+    /* Obtain the signer's public key point and determine if the sk
+     * should be negated before signing.
      *
-     * This can be seen by looking at the sk key belonging to `agg_pk`.
-     * Let's define
-     * P' := mu_0*|P_0| + ... + mu_n*|P_n| where P_i is the i-th public key
-     * point x_i*G, mu_i is the i-th KeyAgg coefficient and |.| is a function
-     * that normalizes a point to an even Y by negating if necessary similar to
-     * secp256k1_extrakeys_ge_even_y. Then we have
-     * P := |P'| + t*G where t is the tweak.
-     * And the aggregate xonly public key is
-     * |P| = x*G
-     *      where x = sum_i(b_i*mu_i*x_i) + b'*t
-     *            b' = -1 if P != |P|, 1 otherwise
-     *            b_i = -1 if (P_i != |P_i| XOR P' != |P'| XOR P != |P|) and 1
-     *                otherwise.
+     * We use the following notation:
+     * - |.| is a function that normalizes a point to an even Y by negating
+     *       if necessary, similar to secp256k1_extrakeys_ge_even_y
+     * - mu_i as the i-th KeyAgg coefficient
+     * - t is the tweak
+     *
+     * The following public keys arise as intermediate steps:
+     * - P_i is the i-th public key with corresponding secret key x_i
+     *   P_i = x_i*G
+     * - P_agg is the aggregate public key
+     *   P_agg := mu_1*|P_1| + ... + mu_n*|P_n|
+     * - P_tweak is the tweaked aggregate public key
+     *   P_tweak := |P_agg| + t*G
+     *
+     * Note that our goal is to produce a partial signature corresponding to
+     * the final public key P_final = |P_tweak|.
+     *
+     * Define b_i, b_agg, and b_tweak so that:
+     * - |P_i| = b_i*P_i
+     * - |P_agg| = b_agg*P_agg
+     * - |P_tweak| = b_tweak*P_tweak
+     *
+     * In other words, b_i = 1 if P_i has even y coordinate, -1 otherwise;
+     * similarly for b_agg and b_tweak.
+     *
+     * The (xonly) final public key is P_final = |P_tweak|
+     *   = b_tweak*P_tweak
+     *   = b_tweak*(|P_agg| + t)
+     *   = b_tweak*(b_agg*P_agg + t)
+     *   = b_tweak*(b_agg*(mu_1*|P_1| + ... + mu_n*|P_n|) + t*G)
+     *   = b_tweak*(b_agg*(b_1*mu_1*P_1 + ... + b_n*mu_n*P_n) + t*G)
+     *   = (sum((b_tweak*b_agg*b_i)*mu_i*x_i) + b_tweak*t)*G
+     *
+     * Thus whether signer i should use the negated x_i depends on the product
+     * b_tweak*b_agg*b_i. In other words, negate if and only if the following
+     * holds:
+     *   (P_i has odd y) XOR (P_agg has odd y) XOR (P_tweak has odd y)
      */
     if (!secp256k1_keypair_load(ctx, &sk, &pk, keypair)) {
         secp256k1_musig_partial_sign_clear(&sk, k);
