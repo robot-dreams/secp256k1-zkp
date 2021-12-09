@@ -35,6 +35,17 @@ static int secp256k1_musig_secnonce_load(const secp256k1_context* ctx, secp256k1
     return 1;
 }
 
+/* If flag is true, invalidate the secnonce; otherwise leave it. Constant-time. */
+static void secp256k1_musig_secnonce_invalidate(secp256k1_musig_secnonce *secnonce, int flag) {
+    size_t i;
+    int zero = 0;
+    for (i = 0; i < sizeof(secnonce->data); i++) {
+        int val = secnonce->data[i];
+        secp256k1_int_cmov(&val, &zero, flag);
+        secnonce->data[i] = (unsigned char)val;
+    }
+}
+
 static const unsigned char secp256k1_musig_pubnonce_magic[4] = { 0xf5, 0x7a, 0x3d, 0xa0 };
 
 /* Requires that none of the provided group elements is infinity. Works for both
@@ -267,6 +278,16 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     memset(pubnonce, 0, sizeof(*pubnonce));
     ARG_CHECK(session_id32 != NULL);
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
+    if (seckey == NULL) {
+        /* Check in constant time that the session_id is not 0 as a
+         * defense-in-depth measure that may protect against a faulty RNG. */
+        unsigned char acc = 0;
+        for (i = 0; i < 32; i++) {
+            acc |= session_id32[i];
+        }
+        ret &= !!acc;
+        memset(&acc, 0, sizeof(acc));
+    }
 
     /* Check that the seckey is valid to be able to sign for it later. */
     if (seckey != NULL) {
@@ -290,6 +311,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     VERIFY_CHECK(!secp256k1_scalar_is_zero(&k[1]));
     VERIFY_CHECK(!secp256k1_scalar_eq(&k[0], &k[1]));
     secp256k1_musig_secnonce_save(secnonce, k);
+    secp256k1_musig_secnonce_invalidate(secnonce, !ret);
 
     for (i = 0; i < 2; i++) {
         secp256k1_gej nonce_ptj;
