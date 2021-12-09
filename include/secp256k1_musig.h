@@ -17,7 +17,9 @@ extern "C" {
  *
  * The module also supports BIP-341 ("Taproot") public key tweaking and adaptor
  * signatures as described in
- * https://github.com/ElementsProject/scriptless-scripts/pull/24
+ * https://github.com/ElementsProject/scriptless-scripts/pull/24 (see
+ * https://bitcoinops.org/en/topics/adaptor-signatures/ for a basic introduction
+ * to adaptor signatures).
  *
  * It is recommended to read the documentation in this include file carefully.
  * Further notes on API usage can be found in src/modules/musig/musig.md
@@ -85,10 +87,11 @@ typedef struct {
     unsigned char data[132];
 } secp256k1_musig_aggnonce;
 
-/** Opaque data structure that holds a cache for a MuSig session.
+/** Opaque data structure that holds a MuSig session.
  *
- *  This structure is not necessarily required to be kept secret. Guaranteed to
- *  be 133 bytes in size. No serialization and parsing functions (yet).
+ *  This structure is not required to be kept secret for the signing protocol to
+ *  be secure. Guaranteed to be 133 bytes in size. No serialization and parsing
+ *  functions (yet).
  */
 typedef struct {
     unsigned char data[133];
@@ -155,7 +158,7 @@ SECP256K1_API int secp256k1_musig_aggnonce_serialize(
     const secp256k1_musig_aggnonce* nonce
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
-/** Serialize a MuSig partial signature or adaptor signature
+/** Serialize a MuSig partial signature
  *
  *  Returns: 1 when the signature could be serialized, 0 otherwise
  *  Args:    ctx: a secp256k1 context object
