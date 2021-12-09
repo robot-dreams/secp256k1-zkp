@@ -498,12 +498,12 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
      * We use the following notation:
      * - |.| is a function that normalizes a point to an even Y by negating
      *       if necessary, similar to secp256k1_extrakeys_ge_even_y
-     * - mu_i as the i-th KeyAgg coefficient
+     * - mu_i is the i-th KeyAgg coefficient
      * - t is the tweak
      *
      * The following public keys arise as intermediate steps:
      * - P_i is the i-th public key with corresponding secret key x_i
-     *   P_i = x_i*G
+     *   P_i := x_i*G
      * - P_agg is the aggregate public key
      *   P_agg := mu_1*|P_1| + ... + mu_n*|P_n|
      * - P_tweak is the tweaked aggregate public key
@@ -512,24 +512,24 @@ int secp256k1_musig_partial_sign(const secp256k1_context* ctx, secp256k1_musig_p
      * Note that our goal is to produce a partial signature corresponding to
      * the final public key P_final = |P_tweak|.
      *
-     * Define b_i, b_agg, and b_tweak so that:
-     * - |P_i| = b_i*P_i
-     * - |P_agg| = b_agg*P_agg
-     * - |P_tweak| = b_tweak*P_tweak
+     * Define d_i, d_agg, and d_tweak so that:
+     * - |P_i| = d_i*P_i
+     * - |P_agg| = d_agg*P_agg
+     * - |P_tweak| = d_tweak*P_tweak
      *
-     * In other words, b_i = 1 if P_i has even y coordinate, -1 otherwise;
-     * similarly for b_agg and b_tweak.
+     * In other words, d_i = 1 if P_i has even y coordinate, -1 otherwise;
+     * similarly for d_agg and d_tweak.
      *
      * The (xonly) final public key is P_final = |P_tweak|
-     *   = b_tweak*P_tweak
-     *   = b_tweak*(|P_agg| + t)
-     *   = b_tweak*(b_agg*P_agg + t)
-     *   = b_tweak*(b_agg*(mu_1*|P_1| + ... + mu_n*|P_n|) + t*G)
-     *   = b_tweak*(b_agg*(b_1*mu_1*P_1 + ... + b_n*mu_n*P_n) + t*G)
-     *   = (sum((b_tweak*b_agg*b_i)*mu_i*x_i) + b_tweak*t)*G
+     *   = d_tweak*P_tweak
+     *   = d_tweak*(|P_agg| + t*G)
+     *   = d_tweak*(d_agg*P_agg + t*G)
+     *   = d_tweak*(d_agg*(mu_1*|P_1| + ... + mu_n*|P_n|) + t*G)
+     *   = d_tweak*(d_agg*(d_1*mu_1*P_1 + ... + d_n*mu_n*P_n) + t*G)
+     *   = (sum((d_tweak*d_agg*d_i)*mu_i*x_i) + d_tweak*t)*G
      *
      * Thus whether signer i should use the negated x_i depends on the product
-     * b_tweak*b_agg*b_i. In other words, negate if and only if the following
+     * d_tweak*d_agg*d_i. In other words, negate if and only if the following
      * holds:
      *   (P_i has odd y) XOR (P_agg has odd y) XOR (P_tweak has odd y)
      */
