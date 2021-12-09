@@ -36,7 +36,7 @@ static int secp256k1_musig_secnonce_load(const secp256k1_context* ctx, secp256k1
 }
 
 /* If flag is true, invalidate the secnonce; otherwise leave it. Constant-time. */
-static void secp256k1_musig_secnonce_invalidate(secp256k1_musig_secnonce *secnonce, int flag) {
+static void secp256k1_musig_secnonce_invalidate(const secp256k1_context* ctx, secp256k1_musig_secnonce *secnonce, int flag) {
     size_t i;
     int zero = 0;
     for (i = 0; i < sizeof(secnonce->data); i++) {
@@ -44,6 +44,10 @@ static void secp256k1_musig_secnonce_invalidate(secp256k1_musig_secnonce *secnon
         secp256k1_int_cmov(&val, &zero, flag);
         secnonce->data[i] = (unsigned char)val;
     }
+    /* The flag argument is usually classified. So, above code makes the magic
+     * classified. However, we need the magic to be declassified to be able to
+     * compare it during secnonce_load. */
+    secp256k1_declassify(ctx, secnonce->data, sizeof(secp256k1_musig_secnonce_magic));
 }
 
 static const unsigned char secp256k1_musig_pubnonce_magic[4] = { 0xf5, 0x7a, 0x3d, 0xa0 };
@@ -311,7 +315,7 @@ int secp256k1_musig_nonce_gen(const secp256k1_context* ctx, secp256k1_musig_secn
     VERIFY_CHECK(!secp256k1_scalar_is_zero(&k[1]));
     VERIFY_CHECK(!secp256k1_scalar_eq(&k[0], &k[1]));
     secp256k1_musig_secnonce_save(secnonce, k);
-    secp256k1_musig_secnonce_invalidate(secnonce, !ret);
+    secp256k1_musig_secnonce_invalidate(ctx, secnonce, !ret);
 
     for (i = 0; i < 2; i++) {
         secp256k1_gej nonce_ptj;
