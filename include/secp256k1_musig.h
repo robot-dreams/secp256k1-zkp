@@ -35,16 +35,15 @@ extern "C" {
 /** Opaque data structures
  *
  *  The exact representation of data inside is implementation defined and not
- *  guaranteed to be portable between different platforms or versions. It can,
- *  however, be safely copied/moved. If you need to convert to a format suitable
- *  for storage, transmission, or comparison, use the corresponding
- *  serialization and parsing functions.
+ *  guaranteed to be portable between different platforms or versions. If you
+ *  need to convert to a format suitable for storage, transmission, or
+ *  comparison, use the corresponding serialization and parsing functions.
  */
 
 /** Opaque data structure that caches information about public key aggregation.
  *
- *  Guaranteed to be 165 bytes in size. No serialization and parsing functions
- *  (yet).
+ *  Guaranteed to be 165 bytes in size. It can be safely copied/moved. No
+ *  serialization and parsing functions (yet).
  */
 typedef struct {
     unsigned char data[165];
@@ -71,8 +70,8 @@ typedef struct {
 
 /** Opaque data structure that holds a signer's public nonce.
 *
-*  Guaranteed to be 132 bytes in size. Serialized and parsed with
-*  `musig_pubnonce_serialize` and `musig_pubnonce_parse`.
+*  Guaranteed to be 132 bytes in size. It can be safely copied/moved. Serialized
+*  and parsed with `musig_pubnonce_serialize` and `musig_pubnonce_parse`.
 */
 typedef struct {
     unsigned char data[132];
@@ -80,8 +79,9 @@ typedef struct {
 
 /** Opaque data structure that holds an aggregate public nonce.
  *
- *  Guaranteed to be 132 bytes in size. Serialized and parsed with
- *  `musig_aggnonce_serialize` and `musig_aggnonce_parse`.
+ *  Guaranteed to be 132 bytes in size. It can be safely copied/moved.
+ *  Serialized and parsed with `musig_aggnonce_serialize` and
+ *  `musig_aggnonce_parse`.
  */
 typedef struct {
     unsigned char data[132];
@@ -90,8 +90,8 @@ typedef struct {
 /** Opaque data structure that holds a MuSig session.
  *
  *  This structure is not required to be kept secret for the signing protocol to
- *  be secure. Guaranteed to be 133 bytes in size. No serialization and parsing
- *  functions (yet).
+ *  be secure. Guaranteed to be 133 bytes in size. It can be safely
+ *  copied/moved. No serialization and parsing functions (yet).
  */
 typedef struct {
     unsigned char data[133];
