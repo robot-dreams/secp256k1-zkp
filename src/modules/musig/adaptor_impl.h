@@ -34,6 +34,7 @@ int secp256k1_musig_adapt(const secp256k1_context* ctx, unsigned char *sig64, co
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(sig64 != NULL);
     ARG_CHECK(sec_adaptor32 != NULL);
+    ARG_CHECK(nonce_parity == 0 || nonce_parity == 1);
 
     secp256k1_scalar_set_b32(&s, &sig64[32], &overflow);
     if (overflow) {
@@ -64,6 +65,7 @@ int secp256k1_musig_extract_adaptor(const secp256k1_context* ctx, unsigned char 
     ARG_CHECK(sec_adaptor32 != NULL);
     ARG_CHECK(sig64 != NULL);
     ARG_CHECK(pre_sig64 != NULL);
+    ARG_CHECK(nonce_parity == 0 || nonce_parity == 1);
 
     secp256k1_scalar_set_b32(&t, &sig64[32], &overflow);
     if (overflow) {

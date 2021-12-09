@@ -514,6 +514,8 @@ void musig_api_tests(secp256k1_scratch_space *scratch) {
         CHECK(ecount == 2);
         CHECK(secp256k1_musig_adapt(none, tmp_sig, max64, nonce_parity) == 0);
         CHECK(ecount == 2);
+        CHECK(secp256k1_musig_adapt(none, tmp_sig, sec_adaptor, 2) == 0);
+        CHECK(ecount == 3);
     }
     memcpy(final_sig, pre_sig, sizeof(final_sig));
     CHECK(secp256k1_musig_adapt(none, final_sig, sec_adaptor, nonce_parity) == 1);
@@ -534,6 +536,8 @@ void musig_api_tests(secp256k1_scratch_space *scratch) {
     CHECK(ecount == 3);
     CHECK(secp256k1_musig_extract_adaptor(none, sec_adaptor1, final_sig, max64, 0) == 0);
     CHECK(ecount == 3);
+    CHECK(secp256k1_musig_extract_adaptor(none, sec_adaptor1, final_sig, pre_sig, 2) == 0);
+    CHECK(ecount == 4);
 
     /** cleanup **/
     secp256k1_context_destroy(none);
