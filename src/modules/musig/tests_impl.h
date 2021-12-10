@@ -1235,6 +1235,23 @@ void musig_test_vectors_sign(void) {
         CHECK(fin_nonce_parity == 0);
         CHECK(memcmp(sig, sig_expected, 32) == 0);
     }
+    {
+        const unsigned char sig_expected[32] = {
+            0x0D, 0x5B, 0x65, 0x1E, 0x6D, 0xE3, 0x4A, 0x29,
+            0xA1, 0x2D, 0xE7, 0xA8, 0xB4, 0x18, 0x3B, 0x4A,
+            0xE6, 0xA7, 0xF7, 0xFB, 0xE1, 0x5C, 0xDC, 0xAF,
+            0xA4, 0xA3, 0xD1, 0xBC, 0xAA, 0xBC, 0x75, 0x17,
+        };
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, pk, 2);
+
+       /* This is a test where the aggregate public key point has an _odd_ y
+        * coordinate, the signer _is not_ the second pubkey in the list and the
+        * nonce parity is 0. */
+        CHECK(musig_test_pk_parity(&keyagg_cache) == 1);
+        CHECK(!musig_test_is_second_pk(&keyagg_cache, sk));
+        CHECK(fin_nonce_parity == 0);
+        CHECK(memcmp(sig, sig_expected, 32) == 0);
+    }
 }
 
 void run_musig_tests(void) {
