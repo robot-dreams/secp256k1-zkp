@@ -17,9 +17,7 @@ extern "C" {
  *
  * The module also supports BIP-341 ("Taproot") public key tweaking and adaptor
  * signatures as described in
- * https://github.com/ElementsProject/scriptless-scripts/pull/24 (see
- * https://bitcoinops.org/en/topics/adaptor-signatures/ for a basic introduction
- * to adaptor signatures).
+ * https://github.com/ElementsProject/scriptless-scripts/pull/24.
  *
  * It is recommended to read the documentation in this include file carefully.
  * Further notes on API usage can be found in src/modules/musig/musig.md
