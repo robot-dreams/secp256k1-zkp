@@ -1103,7 +1103,7 @@ void musig_test_vectors_noncegen(void) {
     }
 }
 
-void musig_test_vectors_sign_helper(secp256k1_musig_keyagg_cache *keyagg_cache, int *fin_nonce_parity, unsigned char *sig, const unsigned char *secnonce_bytes, const unsigned char *agg_pubnonce_ser, const unsigned char *sk, const unsigned char *msg, const unsigned char **pk_ser, int signer_pos) {
+void musig_test_vectors_sign_helper(secp256k1_musig_keyagg_cache *keyagg_cache, int *fin_nonce_parity, unsigned char *sig, const unsigned char *secnonce_bytes, const unsigned char *agg_pubnonce_ser, const unsigned char *sk, const unsigned char *msg, const unsigned char *tweak32, secp256k1_pubkey *adaptor, const unsigned char **pk_ser, int signer_pos) {
     secp256k1_keypair signer_keypair;
     secp256k1_musig_secnonce secnonce;
     secp256k1_xonly_pubkey pk[3];
@@ -1123,10 +1123,13 @@ void musig_test_vectors_sign_helper(secp256k1_musig_keyagg_cache *keyagg_cache, 
         pk_ptr[i] = &pk[i];
     }
     CHECK(secp256k1_musig_pubkey_agg(ctx, NULL, &agg_pk, keyagg_cache, pk_ptr, 3) == 1);
+    if (tweak32 != NULL) {
+        CHECK(secp256k1_musig_pubkey_tweak_add(ctx, NULL, keyagg_cache, tweak32));
+    }
     memcpy(&secnonce.data[0], secp256k1_musig_secnonce_magic, 4);
     memcpy(&secnonce.data[4], secnonce_bytes, sizeof(secnonce.data) - 4);
     CHECK(secp256k1_musig_aggnonce_parse(ctx, &agg_pubnonce, agg_pubnonce_ser) == 1);
-    CHECK(secp256k1_musig_nonce_process(ctx, &session, &agg_pubnonce, msg, keyagg_cache, NULL) == 1);
+    CHECK(secp256k1_musig_nonce_process(ctx, &session, &agg_pubnonce, msg, keyagg_cache, adaptor) == 1);
     CHECK(secp256k1_musig_partial_sign(ctx, &partial_sig, &secnonce, &signer_keypair, keyagg_cache, &session) == 1);
     CHECK(secp256k1_musig_nonce_parity(ctx, fin_nonce_parity, &session) == 1);
     memcpy(sig, &partial_sig.data[4], 32);
@@ -1197,7 +1200,7 @@ void musig_test_vectors_sign(void) {
             0x20, 0xA1, 0x81, 0x85, 0x5F, 0xD8, 0xBD, 0xB7,
             0xF1, 0x27, 0xBB, 0x12, 0x40, 0x3B, 0x4D, 0x3B,
         };
-        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, pk, 0);
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, NULL, NULL, pk, 0);
         /* TODO: remove when test vectors are not expected to change anymore */
         /* int k, l; */
         /* printf("const unsigned char sig_expected[32] = {\n"); */
@@ -1225,7 +1228,7 @@ void musig_test_vectors_sign(void) {
             0x81, 0x38, 0xDA, 0xEC, 0x5C, 0xB2, 0x0A, 0x35,
             0x7C, 0xEC, 0xA7, 0xC8, 0x42, 0x42, 0x95, 0xEA,
         };
-        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, pk, 1);
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, NULL, NULL, pk, 1);
 
        /* This is a test where the aggregate public key point has an _even_ y
         * coordinate, the signer _is_ the second pubkey in the list and the
@@ -1242,7 +1245,7 @@ void musig_test_vectors_sign(void) {
             0xE6, 0xA7, 0xF7, 0xFB, 0xE1, 0x5C, 0xDC, 0xAF,
             0xA4, 0xA3, 0xD1, 0xBC, 0xAA, 0xBC, 0x75, 0x17,
         };
-        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, pk, 2);
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, NULL, NULL, pk, 2);
 
        /* This is a test where the aggregate public key point has an _odd_ y
         * coordinate, the signer _is not_ the second pubkey in the list and the
@@ -1250,6 +1253,62 @@ void musig_test_vectors_sign(void) {
         CHECK(musig_test_pk_parity(&keyagg_cache) == 1);
         CHECK(!musig_test_is_second_pk(&keyagg_cache, sk));
         CHECK(fin_nonce_parity == 0);
+        CHECK(memcmp(sig, sig_expected, 32) == 0);
+    }
+    {
+        const unsigned char sig_expected[32] = {
+            0x5E, 0x24, 0xC7, 0x49, 0x6B, 0x56, 0x5D, 0xEB,
+            0xC3, 0xB9, 0x63, 0x9E, 0x6F, 0x13, 0x04, 0xA2,
+            0x15, 0x97, 0xF9, 0x60, 0x3D, 0x3A, 0xB0, 0x5B,
+            0x49, 0x13, 0x64, 0x17, 0x75, 0xE1, 0x37, 0x5B,
+        };
+
+        /* We use the tagged hash (tag = "TapTweak") of the aggregate pubkey, which
+         * is consistent with BIP341 when script path shouldn't be used.
+         */
+        const unsigned char tweak[32] = {
+            0xE8, 0xF7, 0x91, 0xFF, 0x92, 0x25, 0xA2, 0xAF,
+            0x01, 0x02, 0xAF, 0xFF, 0x4A, 0x9A, 0x72, 0x3D,
+            0x96, 0x12, 0xA6, 0x82, 0xA2, 0x5E, 0xBE, 0x79,
+            0x80, 0x2B, 0x26, 0x3C, 0xDF, 0xCD, 0x83, 0xBB,
+        };
+
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, tweak, NULL, pk, 2);
+
+       /* This is a test where the aggregate public key has an _odd_ y
+        * coordinate, the signer _is not_ the second pubkey in the list and the
+        * nonce parity is 1. */
+        CHECK(musig_test_pk_parity(&keyagg_cache) == 1);
+        CHECK(!musig_test_is_second_pk(&keyagg_cache, sk));
+        CHECK(fin_nonce_parity == 1);
+        CHECK(memcmp(sig, sig_expected, 32) == 0);
+    }
+    {
+        const unsigned char sig_expected[32] = {
+            0xD7, 0x67, 0xD0, 0x7D, 0x9A, 0xB8, 0x19, 0x8C,
+            0x9F, 0x64, 0xE3, 0xFD, 0x9F, 0x7B, 0x8B, 0xAA,
+            0xC6, 0x05, 0xF1, 0x8D, 0xFF, 0x18, 0x95, 0x24,
+            0x2D, 0x93, 0x95, 0xD9, 0xC8, 0xE6, 0xDD, 0x7C,
+        };
+
+        const unsigned char sec_adaptor[32] = {
+            0xD5, 0x6A, 0xD1, 0x85, 0x00, 0xF2, 0xD7, 0x8A,
+            0xB9, 0x54, 0x80, 0x53, 0x76, 0xF3, 0x9D, 0x1B,
+            0x6D, 0x62, 0x04, 0x95, 0x12, 0x39, 0x04, 0x6D,
+            0x99, 0x3A, 0x9C, 0x31, 0xE0, 0xF4, 0x78, 0x71,
+        };
+
+        secp256k1_pubkey pub_adaptor;
+        CHECK(secp256k1_ec_pubkey_create(ctx, &pub_adaptor, sec_adaptor) == 1);
+
+        musig_test_vectors_sign_helper(&keyagg_cache, &fin_nonce_parity, sig, secnonce, agg_pubnonce, sk, msg, NULL, &pub_adaptor, pk, 2);
+
+       /* This is a test where the aggregate public key has an _odd_ y
+        * coordinate, the signer _is not_ the second pubkey in the list and the
+        * nonce parity is 1. */
+        CHECK(musig_test_pk_parity(&keyagg_cache) == 1);
+        CHECK(!musig_test_is_second_pk(&keyagg_cache, sk));
+        CHECK(fin_nonce_parity == 1);
         CHECK(memcmp(sig, sig_expected, 32) == 0);
     }
 }
